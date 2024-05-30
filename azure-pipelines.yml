@@ -20,3 +20,26 @@ steps:
     npm install
     ng build --prod
   displayName: 'npm install and build'
+  workingDirectory: '$(Build.SourcesDirectory)'
+
+- task: CmdLine@2
+  displayName: "Run unit tests"
+  inputs:
+    script: |
+      cd angular-app/
+      ng test --browsers=chromeHeadless --code-coverage --watch=false
+
+      - task: ArchieveFiles@2
+        displayName:  'Archieve files'
+        inputs:
+          rootFolderOrFile: '$ (System.DefaultWorkingDirectory)/dist/angular-app/'
+          includeRootFolder: false
+          archieveType: zip
+          archieveFile: $ (Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+          replaceExistingArchieve: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$ (Build.ArtifactStagingDirectory)/$ (Build.BuildId).zip'
+              ArtifactName: 'drop'
+              publishLocation: 'container'
